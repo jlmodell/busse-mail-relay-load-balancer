@@ -27,6 +27,22 @@ After:   ERP ──► Postfix container (queues to a volume) ──► SMTP2GO
 - **Host networking is deliberate.** With bridge networking and published ports, Docker can rewrite the client source IP in some setups (userland-proxy, hairpin), which would break the allowlist. `network_mode: host` avoids that. Nothing else on the host can use port 25.
 - **The queue lives in the `spool` volume.** `docker compose down` keeps it; `down -v` deletes queued mail.
 
+## Logs & Discord notifications
+The `log-watcher` container tails Postfix's log and writes one line per message to the host:
+
+| File | Contents |
+|---|---|
+| `./logs/sent.log` | Delivered to SMTP2GO (250 OK + SMTP2GO message id) |
+| `./logs/rejected.log` | Allowlist rejections, bounces, and messages that expired in the queue |
+| `./logs/deferred.log` | First temporary failure per message (it's still queued and retrying) |
+| `./logs/mail.log` | Raw Postfix log |
+
+Format: `timestamp | STATUS | from -> to | subject | client | qid | relay | detail`
+
+Set `DISCORD_WEBHOOK_URL` in `.env` to get Discord embeds. `DISCORD_NOTIFY` picks which statuses post (default: everything except `sent`).
+
+The logs grow without limit. For high volume, add a host logrotate rule with `copytruncate` on `./logs/*.log`; the watcher handles truncation.
+
 ## Security: the /21 allowlist
 Anything on the LAN can send through this relay as your domain without auth, including a compromised PC. Mitigations:
 - In SMTP2GO, restrict allowed sender addresses/domains for this SMTP user, and set a sending rate limit if your plan offers one.

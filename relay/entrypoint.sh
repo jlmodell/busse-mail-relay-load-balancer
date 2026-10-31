@@ -40,7 +40,8 @@ postconf -e \
   "disable_vrfy_command=yes" \
   "local_header_rewrite_clients=permit_mynetworks" \
   'smtpd_banner=$myhostname ESMTP' \
-  "maillog_file=/dev/stdout"
+  "maillog_file=/var/log/postfix/mail.log" \
+  "header_checks=regexp:/etc/postfix/header_checks"
 
 [ -n "${BOUNCE_NOTICE_TO:-}" ] && postconf -e "notify_classes=bounce, resource, software" "bounce_notice_recipient=${BOUNCE_NOTICE_TO}"
 
@@ -51,6 +52,13 @@ postmap hash:/etc/postfix/sasl_passwd
 # Postfix runs chrooted services; give them DNS + CA certs
 mkdir -p /var/spool/postfix/etc
 cp /etc/resolv.conf /etc/services /etc/hosts /var/spool/postfix/etc/ 2>/dev/null || true
+
+# Log each message's Subject so the watcher can include it
+printf '/^Subject:/ WARN\n' > /etc/postfix/header_checks
+
+# File log on the host (./logs) + mirror to stdout for docker logs
+mkdir -p /var/log/postfix && touch /var/log/postfix/mail.log
+tail -n0 -F /var/log/postfix/mail.log &
 
 postfix set-permissions >/dev/null 2>&1 || true
 postfix check
