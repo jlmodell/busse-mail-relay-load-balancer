@@ -8,5 +8,5 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 25
 VOLUME ["/var/spool/postfix"]
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD postfix status >/dev/null 2>&1 || exit 1
+  CMD kill -0 $(cat /var/spool/postfix/pid/master.pid) 2>/dev/null || exit 1
 ENTRYPOINT ["/entrypoint.sh"]

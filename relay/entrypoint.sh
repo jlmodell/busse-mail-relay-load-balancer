@@ -38,6 +38,7 @@ postconf -e \
   "message_size_limit=${MESSAGE_SIZE_LIMIT:-52428800}" \
   "mailbox_size_limit=0" \
   "disable_vrfy_command=yes" \
+  "local_header_rewrite_clients=permit_mynetworks" \
   'smtpd_banner=$myhostname ESMTP' \
   "maillog_file=/dev/stdout"
 
