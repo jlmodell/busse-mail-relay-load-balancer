@@ -56,10 +56,18 @@ cp /etc/resolv.conf /etc/services /etc/hosts /var/spool/postfix/etc/ 2>/dev/null
 # Log each message's Subject so the watcher can include it
 printf '/^Subject:/ WARN\n' > /etc/postfix/header_checks
 
-# File log on the host (./logs) + mirror to stdout for docker logs
 mkdir -p /var/log/postfix && touch /var/log/postfix/mail.log
-tail -n0 -F /var/log/postfix/mail.log &
 
 postfix set-permissions >/dev/null 2>&1 || true
 postfix check
-exec postfix start-fg
+# Run Postfix and a stdout mirror of the file log side by side.
+# The container exits (and restarts) if Postfix exits; docker stop shuts Postfix down cleanly.
+tail -n 0 -F /var/log/postfix/mail.log &
+TAIL_PID=$!
+postfix start-fg &
+PF_PID=$!
+trap 'postfix stop >/dev/null 2>&1; kill $TAIL_PID 2>/dev/null; exit 0' TERM INT
+wait $PF_PID
+RC=$?
+kill $TAIL_PID 2>/dev/null
+exit $RC
