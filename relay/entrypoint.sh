@@ -26,7 +26,7 @@ postconf -e \
   "smtpd_sasl_auth_enable=no" \
   "relayhost=${UPSTREAM}" \
   "smtp_sasl_auth_enable=yes" \
-  "smtp_sasl_password_maps=lmdb:/etc/postfix/sasl_passwd" \
+  "smtp_sasl_password_maps=hash:/etc/postfix/sasl_passwd" \
   "smtp_sasl_security_options=noanonymous" \
   "smtp_sasl_tls_security_options=noanonymous" \
   "smtp_tls_security_level=encrypt" \
@@ -45,7 +45,7 @@ postconf -e \
 
 printf '%s %s:%s\n' "$UPSTREAM" "$SMTP2GO_USER" "$SMTP2GO_PASS" > /etc/postfix/sasl_passwd
 chmod 600 /etc/postfix/sasl_passwd
-postmap lmdb:/etc/postfix/sasl_passwd
+postmap hash:/etc/postfix/sasl_passwd
 
 # Postfix runs chrooted services; give them DNS + CA certs
 mkdir -p /var/spool/postfix/etc
