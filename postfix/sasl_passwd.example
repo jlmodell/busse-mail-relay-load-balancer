@@ -1,3 +1,0 @@
-# Copy to /etc/postfix/sasl_passwd, chmod 600, then: postmap /etc/postfix/sasl_passwd
-# Create a dedicated SMTP user in the SMTP2GO dashboard for this relay.
-[mail.smtp2go.com]:587 <SMTP2GO_USERNAME>:<SMTP2GO_PASSWORD>

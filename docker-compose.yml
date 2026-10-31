@@ -1,0 +1,12 @@
+services:
+  mail-relay:
+    build: ./relay
+    container_name: busse-mail-relay
+    restart: unless-stopped
+    # host networking so Postfix sees the ERP's real source IP for the allowlist
+    network_mode: host
+    env_file: .env
+    volumes:
+      - spool:/var/spool/postfix    # queue survives container restarts/rebuilds
+volumes:
+  spool:
